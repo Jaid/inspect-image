@@ -2,29 +2,43 @@
   "name": "inspect-image",
   "version": "0.1.0",
   "type": "module",
-  "exports": {
-    ".": {
-      "default": "./src/main.ts"
-    }
+  "description": "Exact image color statistics, palettes, dominant colors and crop suggestions",
+  "funding": "https://github.com/sponsors/Jaid",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Jaid/inspect-image.git"
   },
   "imports": {
     "#src/*": "./src/*",
     "#root/*": "./*"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/Jaid/inspect-image.git"
-  },
   "scripts": {
+    "lint": "tsc --noEmit --noUnusedLocals --pretty false && eslint src test",
     "test": "bun test --max-concurrency 1 ./test"
+  },
+  "dependencies": {
+    "bmp-ts": "1.0.9",
+    "jpeg-js": "0.4.4",
+    "okhsl": "0.1.0",
+    "omggif": "1.0.10",
+    "pngjs": "7.0.0",
+    "utif2": "4.1.0"
   },
   "devDependencies": {
     "@types/bun": "1.4.1",
+    "@types/omggif": "1.0.5",
+    "@types/pngjs": "6.0.5",
     "eslint": "10.10.0",
     "eslint-config-jaid": "26.0.0",
     "tsconfig-jaid-bun": "16.0.0",
     "typescript": "npm:typescript-classic@6.0.4"
   },
-  "funding": "https://github.com/sponsors/Jaid",
-  "license": "MIT"
+  "files": [
+    "src",
+    "dist",
+    "lib.d.ts",
+    "readme.md",
+    "license.txt"
+  ]
 }
