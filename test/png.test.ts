@@ -1,7 +1,7 @@
 import {expect, test} from 'bun:test'
 import {crc32, deflateSync} from 'node:zlib'
 
-import inspectImage from 'inspect-image'
+import inspectImage from '#src/main.ts'
 
 const chunk = (type: string, data: Uint8Array) => {
   const bytes = Buffer.concat([Buffer.from(type), data])

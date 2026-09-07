@@ -1,6 +1,6 @@
 import {expect, test} from 'bun:test'
 
-import inspectImage from 'inspect-image'
+import inspectImage from '#src/main.ts'
 
 import {encodeBmpBuffer, encodeGifBuffer, encodeJpegBuffer, encodePng, encodeTiffBuffer, rgbaFill, withExifOrientation} from './helpers.ts'
 

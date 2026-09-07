@@ -70,8 +70,6 @@ export type BaseResult = {
 export type SingleResult = BaseResult & TileResult
 export type SplitResult = BaseResult & {tiles: Array<Tile>}
 export type Result = SingleResult | SplitResult
-export type FileResult = Result & {fileSize: number}
-export type SingleFileResult = SingleResult & {fileSize: number}
 
 export type RawImage = {
   channels: 3 | 4
@@ -81,7 +79,6 @@ export type RawImage = {
 }
 
 export type ImageInput = ArrayBuffer | ArrayBufferView | RawImage | SharedArrayBuffer
-export type FileInput = Blob | URL | string
 export type ColorSpace = 'hsl' | 'okhsl'
 export type DominantColorAlgorithm = 'k_means' | 'median_cut' | false
 

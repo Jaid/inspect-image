@@ -1,25 +1,18 @@
-/* eslint-disable import/newline-after-import */
-import type {Options} from 'inspect-image'
-
 import {describe, expect, test} from 'bun:test'
-import {mkdtemp, rm, writeFile} from 'node:fs/promises' // eslint-disable-line typescript/no-restricted-imports -- Tests exercise Node file APIs.
-import {tmpdir} from 'node:os'
-import {join} from 'node:path'
-import {pathToFileURL} from 'node:url'
 
-import inspectImage, {analyzeImage, inspectImageFile} from 'inspect-image'
 import {fromRgb as rgbToOkhsl} from 'okhsl'
 
-import {encodePng, raw, rgbaFill} from './helpers.ts'
+import inspectImage from '#src/main.ts'
+
+import {raw} from './helpers.ts'
 
 const black = [0, 0, 0]
 const white = [255, 255, 255]
 const red = [255, 0, 0]
 const solid = (width = 2, height = 2, color = red) => raw(width, height, Array.from({length: width * height}, () => color), color.length as 3 | 4)
 describe('public API and statistics', () => {
-  test('default and named APIs agree', () => {
-    const image = solid()
-    expect(inspectImage(image)).toEqual(analyzeImage(image))
+  test('exports only the default function', async () => {
+    expect(Object.keys(await import('#src/main.ts'))).toEqual(['default'])
   })
   test('dimensions, decoded size, exact RGB statistics and defaults', () => {
     const result = inspectImage(raw(2, 2, [black, white, black, white]))
@@ -201,32 +194,11 @@ describe('crop semantics', () => {
     })
   })
 })
-describe('files and validation', () => {
-  test('file paths, file URLs and Blobs preserve encoded size', async () => {
-    const bytes = encodePng(2, 1, rgbaFill(2, 1, 255, 0, 0))
-    const folder = await mkdtemp(join(tmpdir(), 'inspect-image-'))
-    try {
-      const file = join(folder, 'fixture.png')
-      await writeFile(file, bytes)
-      const direct = inspectImage(bytes)
-      const expected = {
-        ...direct,
-        fileSize: bytes.length,
-      }
-      for (const input of [file, pathToFileURL(file), new Blob([bytes]), new File([bytes], 'fixture.png')]) {
-        expect(await inspectImageFile(input)).toEqual(expected)
-      }
-    } finally {
-      await rm(folder, {
-        recursive: true,
-        force: true,
-      })
-    }
-  })
+describe('validation', () => {
   test('rejects malformed inputs and invalid options before work', () => {
     const image = solid()
-    for (const options of [{rows: 0}, {columns: 3}, {rows: 1.5}, {frequentColorsCount: -1}, {maxPixels: Number.NaN}, {dominantColorClusters: 17}, {colorSpace: 'lab'}, {dominantColorAlgorithm: true}] as Array<Options>) {
-      expect(() => inspectImage(image, options)).toThrow()
+    for (const options of [{rows: 0}, {columns: 3}, {rows: 1.5}, {frequentColorsCount: -1}, {maxPixels: Number.NaN}, {dominantColorClusters: 17}, {colorSpace: 'lab'}, {dominantColorAlgorithm: true}]) {
+      expect(() => inspectImage(image, options as never)).toThrow()
     }
     expect(() => inspectImage(Buffer.from('not an image'))).toThrow()
     expect(() => inspectImage({

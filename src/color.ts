@@ -1,6 +1,6 @@
 import type {ColorSpace, HslColor} from './types.ts'
 
-import {fromRgb as rgbToOkhsl} from 'okhsl'
+import okhsl from 'okhsl'
 
 const clamp = (value: number, minimum: number, maximum: number) => Math.max(minimum, Math.min(maximum, value))
 const wrapHue = (value: number) => (value % 360 + 360) % 360
@@ -71,7 +71,7 @@ export class ColorConverter {
     }
     let color: HslColor
     if (this.space === 'okhsl') {
-      const [hue, saturation, lightness] = rgbToOkhsl(r, g, b)
+      const [hue, saturation, lightness] = okhsl.fromRgb(r, g, b)
       color = {
         hue,
         saturation,

@@ -13,13 +13,15 @@ bun add inspect-image
 ## Usage
 
 ```ts
-import inspectImage, {inspectImageFile} from 'inspect-image'
+import {readFile} from 'node:fs/promises'
+
+import inspectImage from 'inspect-image'
 
 const result = inspectImage(encodedBytes)
-const fromDisk = await inspectImageFile('photo.png')
+const fromDisk = inspectImage(await readFile('photo.png'))
 ```
 
-The named aliases `analyzeImage` and `analyzeImageFile` are also exported for compatibility with the original fixture API.
+File access is deliberately outside the library. Read files with the importer’s runtime APIs and pass their bytes to `inspectImage()`.
 
 ## Inputs
 
