@@ -14,6 +14,7 @@
     "#root/*": "./*"
   },
   "scripts": {
+    "build": "build_lib --terser-strength max",
     "lint": "tsc --noEmit --noUnusedLocals --pretty false && eslint src test",
     "test": "bun test --max-concurrency 1 ./test"
   },
