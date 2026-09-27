@@ -1,6 +1,6 @@
 import type {Bracket, Probe} from './types.ts'
 
-const percentages = [0, 1, 3, 8, 15, 30, 70, 85, 92, 97, 99, 100] as const
+const percentages = [0, 5, 20, 50, 80, 95, 100] as const
 
 export const createBrackets = (maximum: number): Array<Bracket> => {
   const boundaries = percentages.map(value => value * maximum / 100)
@@ -30,44 +30,29 @@ const bracketIndex = (value: number, maximum: number) => {
     return 0
   }
   if (value >= maximum) {
-    return 12
-  }
-  const percentage = value * 100 / maximum
-  if (percentage < 1) {
-    return 1
-  }
-  if (percentage < 3) {
-    return 2
-  }
-  if (percentage < 8) {
-    return 3
-  }
-  if (percentage < 15) {
-    return 4
-  }
-  if (percentage < 30) {
-    return 5
-  }
-  if (percentage < 70) {
-    return 6
-  }
-  if (percentage < 85) {
     return 7
   }
-  if (percentage < 92) {
-    return 8
+  const percentage = value * 100 / maximum
+  if (percentage < 5) {
+    return 1
   }
-  if (percentage < 97) {
-    return 9
+  if (percentage < 20) {
+    return 2
   }
-  if (percentage < 99) {
-    return 10
+  if (percentage < 50) {
+    return 3
   }
-  return 11
+  if (percentage < 80) {
+    return 4
+  }
+  if (percentage < 95) {
+    return 5
+  }
+  return 6
 }
 
 export class ProbeAccumulator {
-  protected readonly bracketCounts = new Uint32Array(13)
+  protected readonly bracketCounts = new Uint32Array(8)
   protected count = 0
   protected readonly histogram: Uint32Array
   protected maximumSeen = -Infinity
@@ -128,7 +113,19 @@ export class ProbeAccumulator {
   }
 }
 
+const createHueBrackets = (): Array<Bracket> => Array.from({length: 12}, (_, index) => ({
+  value: {
+    floor: (345 + index * 30) % 360,
+    floorInclusive: true,
+    ceiling: (15 + index * 30) % 360,
+    ceilingInclusive: false,
+  },
+  count: 0,
+}))
+const hueBracketIndex = (hue: number) => Math.floor((hue + 15) % 360 / 30)
+
 export class HueProbeAccumulator extends ProbeAccumulator {
+  private readonly hueBracketCounts = new Uint32Array(12)
   private sumCos = 0
   private sumSin = 0
 
@@ -139,6 +136,7 @@ export class HueProbeAccumulator extends ProbeAccumulator {
   override add(value: number) {
     const normalized = (value % 360 + 360) % 360
     super.add(normalized)
+    this.hueBracketCounts[hueBracketIndex(normalized)]++
     const radians = normalized * Math.PI / 180
     this.sumSin += Math.sin(radians)
     this.sumCos += Math.cos(radians)
@@ -153,6 +151,18 @@ export class HueProbeAccumulator extends ProbeAccumulator {
     }
     const degrees = Math.atan2(this.sumSin, this.sumCos) * 180 / Math.PI
     return degrees < 0 ? degrees + 360 : degrees
+  }
+
+  override finalize(): Probe {
+    const result = super.finalize()
+    const brackets = createHueBrackets()
+    for (const [index, bracket] of brackets.entries()) {
+      bracket.count = this.hueBracketCounts[index]
+    }
+    return {
+      ...result,
+      brackets,
+    }
   }
 
   protected override median() {

@@ -3,6 +3,7 @@ import {describe, expect, test} from 'bun:test'
 import {fromRgb as rgbToOkhsl} from 'okhsl'
 
 import inspectImage from '#src/main.ts'
+import {HueProbeAccumulator, ProbeAccumulator} from '#src/probe.ts'
 
 import {raw} from './helpers.ts'
 
@@ -36,7 +37,7 @@ describe('public API and statistics', () => {
       average: 50,
       median: 50,
     })
-    expect(result.probes.red.brackets).toHaveLength(13)
+    expect(result.probes.red.brackets).toHaveLength(8)
     expect(result.probes.red.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(4)
     expect(result.frequentColors.map(entry => entry.count)).toEqual([2, 2])
     expect(result.dominantColor).toBeDefined()
@@ -61,6 +62,138 @@ describe('public API and statistics', () => {
       lightness: 50,
     })
     expect(result.probes.lightness.average).toBe(50)
+  })
+  test('uses 8 generic distribution brackets', () => {
+    const probe = new ProbeAccumulator(100, 100)
+    for (const value of [0, 0.001, 4.999, 5, 19.999, 20, 49.999, 50, 79.999, 80, 94.999, 95, 99.999, 100]) {
+      probe.add(value)
+    }
+    const result = probe.finalize()
+    expect(result.brackets).toHaveLength(8)
+    expect(result.brackets.map(bracket => bracket.value)).toEqual([
+      0,
+      {
+        floor: 0,
+        floorInclusive: false,
+        ceiling: 5,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 5,
+        floorInclusive: true,
+        ceiling: 20,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 20,
+        floorInclusive: true,
+        ceiling: 50,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 50,
+        floorInclusive: true,
+        ceiling: 80,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 80,
+        floorInclusive: true,
+        ceiling: 95,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 95,
+        floorInclusive: true,
+        ceiling: 100,
+        ceilingInclusive: false,
+      },
+      100,
+    ])
+    expect(result.brackets.map(bracket => bracket.count)).toEqual([1, 2, 2, 2, 2, 2, 2, 1])
+  })
+  test('uses 12 circular 30-degree hue brackets', () => {
+    const hue = new HueProbeAccumulator
+    for (const value of [344.999, 345, 0, 14.999, 15, 44.999, 45]) {
+      hue.add(value)
+    }
+    const result = hue.finalize()
+    expect(result.brackets).toHaveLength(12)
+    expect(result.brackets.map(bracket => bracket.value)).toEqual([
+      {
+        floor: 345,
+        floorInclusive: true,
+        ceiling: 15,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 15,
+        floorInclusive: true,
+        ceiling: 45,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 45,
+        floorInclusive: true,
+        ceiling: 75,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 75,
+        floorInclusive: true,
+        ceiling: 105,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 105,
+        floorInclusive: true,
+        ceiling: 135,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 135,
+        floorInclusive: true,
+        ceiling: 165,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 165,
+        floorInclusive: true,
+        ceiling: 195,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 195,
+        floorInclusive: true,
+        ceiling: 225,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 225,
+        floorInclusive: true,
+        ceiling: 255,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 255,
+        floorInclusive: true,
+        ceiling: 285,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 285,
+        floorInclusive: true,
+        ceiling: 315,
+        ceilingInclusive: false,
+      },
+      {
+        floor: 315,
+        floorInclusive: true,
+        ceiling: 345,
+        ceilingInclusive: false,
+      },
+    ])
+    expect(result.brackets.map(bracket => bracket.count)).toEqual([3, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1])
   })
   test('skips low-saturation pixels in the hue probe', () => {
     const result = inspectImage(raw(3, 1, [white, red, [128, 127, 127]]), {colorSpace: 'hsl'})

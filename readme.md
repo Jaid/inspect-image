@@ -79,11 +79,15 @@ When rows/columns are both 1, probes and colors are returned at the top level. O
 
 ## Distribution probes
 
-Each probe contains `minimum`, `maximum`, `average`, `median`, and 13 non-overlapping brackets:
+Each probe contains `minimum`, `maximum`, `average`, `median` and distribution brackets.
 
-`0%`, `>0% <1%`, `≥1% <3%`, `≥3% <8%`, `≥8% <15%`, `≥15% <30%`, `≥30% <70%`, `≥70% <85%`, `≥85% <92%`, `≥92% <97%`, `≥97% <99%`, `≥99% <100%`, `100%`.
+Non-hue probes use 8 non-overlapping percentage brackets:
 
-RGB uses 255 as 100%; hue uses 360; saturation/lightness/opacity use 100. RGB medians are exact. Continuous HSL/opacity medians use 0.01-unit histograms; default OkHSL inverse values are integers by definition of the `okhsl` dependency.
+`0%`, `>0% <5%`, `≥5% <20%`, `≥20% <50%`, `≥50% <80%`, `≥80% <95%`, `≥95% <100%`, `100%`.
+
+Hue uses 12 circular 30° brackets centered on multiples of 30°: `[345°,15°)`, `[15°,45°)`, …, `[315°,345°)`. The first bracket wraps across 360° → 0°. Pixels below `hueSaturationThreshold` are omitted from the hue probe.
+
+RGB uses 255 as 100%; saturation/lightness/opacity use 100. RGB medians are exact. Continuous HSL/opacity medians use 0.01-unit histograms; default OkHSL inverse values are integers by definition of the `okhsl` dependency.
 
 ## Frequent colors
 
