@@ -2,50 +2,54 @@ import type {ColorConverter} from './color.ts'
 import type {DominantColorAlgorithm, HslColor} from './types.ts'
 
 type Lab = [number, number, number]
-type Bucket = {alphaSum: number
+type Bucket = {
+  alphaSum: number
   blueSum: number
   count: number
   greenSum: number
-  redSum: number}
-type Point = {count: number
+  redSum: number
+}
+type Point = {
+  count: number
   index: number
   lab: Lab
-  opacity?: number}
+  opacity?: number
+}
 
 const srgbToLinear = (value: number) => {
   const normalized = value / 255
-  return normalized <= 0.040_45 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4
+  return normalized <= 0.04045 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4
 }
 const linearToSrgb = (value: number) => {
-  const normalized = value <= 0.003_130_8 ? 12.92 * value : 1.055 * value ** (1 / 2.4) - 0.055
+  const normalized = value <= 0.0031308 ? 12.92 * value : 1.055 * value ** (1 / 2.4) - 0.055
   return Math.max(0, Math.min(255, normalized * 255))
 }
 const rgbToOklab = (red: number, green: number, blue: number): Lab => {
   const r = srgbToLinear(red)
   const g = srgbToLinear(green)
   const b = srgbToLinear(blue)
-  const l = 0.412_221_470_8 * r + 0.536_332_536_3 * g + 0.051_445_992_9 * b
-  const m = 0.211_903_498_2 * r + 0.680_699_545_1 * g + 0.107_396_956_6 * b
-  const s = 0.088_302_461_9 * r + 0.281_718_837_6 * g + 0.629_978_700_5 * b
+  const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b
+  const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b
+  const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b
   const lRoot = Math.cbrt(l)
   const mRoot = Math.cbrt(m)
   const sRoot = Math.cbrt(s)
   return [
-    0.210_454_255_3 * lRoot + 0.793_617_785 * mRoot - 0.004_072_046_8 * sRoot,
-    1.977_998_495_1 * lRoot - 2.428_592_205 * mRoot + 0.450_593_709_9 * sRoot,
-    0.025_904_037_1 * lRoot + 0.782_771_766_2 * mRoot - 0.808_675_766 * sRoot,
+    0.2104542553 * lRoot + 0.793617785 * mRoot - 0.0040720468 * sRoot,
+    1.9779984951 * lRoot - 2.428592205 * mRoot + 0.4505937099 * sRoot,
+    0.0259040371 * lRoot + 0.7827717662 * mRoot - 0.808675766 * sRoot,
   ]
 }
 const oklabToRgb = ([lightness, a, b]: Lab): [number, number, number] => {
-  const lRoot = lightness + 0.396_337_777_4 * a + 0.215_803_757_3 * b
-  const mRoot = lightness - 0.105_561_345_8 * a - 0.063_854_172_8 * b
-  const sRoot = lightness - 0.089_484_177_5 * a - 1.291_485_548 * b
+  const lRoot = lightness + 0.3963377774 * a + 0.2158037573 * b
+  const mRoot = lightness - 0.1055613458 * a - 0.0638541728 * b
+  const sRoot = lightness - 0.0894841775 * a - 1.291485548 * b
   const l = lRoot ** 3
   const m = mRoot ** 3
   const s = sRoot ** 3
-  const r = 4.076_741_662_1 * l - 3.307_711_591_3 * m + 0.230_969_929_2 * s
-  const g = -1.268_438_004_6 * l + 2.609_757_401_1 * m - 0.341_319_396_5 * s
-  const blue = -0.004_196_086_3 * l - 0.703_418_614_7 * m + 1.707_614_701 * s
+  const r = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s
+  const g = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s
+  const blue = -0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s
   return [linearToSrgb(r), linearToSrgb(g), linearToSrgb(blue)]
 }
 const distance = (left: Lab, right: Lab) => (left[0] - right[0]) ** 2 + (left[1] - right[1]) ** 2 + (left[2] - right[2]) ** 2
@@ -96,10 +100,11 @@ const kMeans = (points: Array<Point>, clusterCount: number) => {
         nearest = Math.min(nearest, distance(point.lab, center))
       }
       const score = nearest * point.count
-      if (score > bestScore) {
-        best = index
-        bestScore = score
+      if (!(score > bestScore)) {
+        continue
       }
+      best = index
+      bestScore = score
     }
     if (best < 0 || bestScore <= 0) {
       break
@@ -119,10 +124,11 @@ const kMeans = (points: Array<Point>, clusterCount: number) => {
       let bestDistance = distance(point.lab, centers[0])
       for (let center = 1; center < centers.length; center++) {
         const candidate = distance(point.lab, centers[center])
-        if (candidate < bestDistance) {
-          best = center
-          bestDistance = candidate
+        if (!(candidate < bestDistance)) {
+          continue
         }
+        best = center
+        bestDistance = candidate
       }
       if (assignments[index] !== best) {
         assignments[index] = best
@@ -152,10 +158,12 @@ const kMeans = (points: Array<Point>, clusterCount: number) => {
   return clusters.filter(cluster => cluster.length)
 }
 
-type Box = {axis: 0 | 1 | 2
+type Box = {
+  axis: 0 | 1 | 2
   first: number
   indices: Array<number>
-  range: number}
+  range: number
+}
 const makeBox = (points: Array<Point>, indices: Array<number>): Box => {
   let axis: 0 | 1 | 2 = 0
   let widest = -1
@@ -166,10 +174,11 @@ const makeBox = (points: Array<Point>, indices: Array<number>): Box => {
       minimum = Math.min(minimum, points[index].lab[candidate])
       maximum = Math.max(maximum, points[index].lab[candidate])
     }
-    if (maximum - minimum > widest) {
-      widest = maximum - minimum
-      axis = candidate
+    if (!(maximum - minimum > widest)) {
+      continue
     }
+    widest = maximum - minimum
+    axis = candidate
   }
   return {
     indices,
@@ -205,10 +214,11 @@ const medianCut = (points: Array<Point>, clusterCount: number) => {
         continue
       }
       const candidate = Math.abs(cumulative - total / 2)
-      if (candidate < imbalance) {
-        imbalance = candidate
-        split = index
+      if (!(candidate < imbalance)) {
+        continue
       }
+      imbalance = candidate
+      split = index
     }
     boxes.splice(best, 1, makeBox(points, sorted.slice(0, split)), makeBox(points, sorted.slice(split)))
   }
@@ -259,10 +269,11 @@ export class DominantAccumulator {
     let winnerPopulation = winner.reduce((sum, index) => sum + points[index].count, 0)
     for (const group of groups.slice(1)) {
       const population = group.reduce((sum, index) => sum + points[index].count, 0)
-      if (population > winnerPopulation) {
-        winner = group
-        winnerPopulation = population
+      if (!(population > winnerPopulation)) {
+        continue
       }
+      winner = group
+      winnerPopulation = population
     }
     const center = weightedMean(points, winner)
     const [red, green, blue] = oklabToRgb(center)

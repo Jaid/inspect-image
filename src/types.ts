@@ -44,8 +44,10 @@ export type TileResult = {
   }
 }
 
-export type Tile = {column: number
-  row: number} & TileResult
+export type Tile = {
+  column: number
+  row: number
+} & TileResult
 
 export type CropRectangle = {
   color: HslColor
@@ -102,7 +104,9 @@ export type Options = {
 }
 
 export type ResolvedOptions = Required<Options>
-export type SingleOptions = Options & {columns?: 1
-  rows?: 1}
+export type SingleOptions = Options & {
+  columns?: 1
+  rows?: 1
+}
 
 export type DecodedImage = RawImage & {format: 'bmp' | 'gif' | 'jpeg' | 'png' | 'tiff'}

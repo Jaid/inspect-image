@@ -53,7 +53,7 @@ const validateRawImage = (image: RawImage, maxPixels: number) => {
     throw new RangeError('Raw image channels must be 3 or 4.')
   }
   if (!(image.data instanceof Uint8Array) || image.data.byteLength !== image.width * image.height * image.channels) {
-    throw new RangeError('Raw image data length must equal width \u00D7 height \u00D7 channels.')
+    throw new RangeError('Raw image data length must equal width \u{D7} height \u{D7} channels.')
   }
 }
 const encodedBytes = (input: Exclude<ImageInput, RawImage>) => {
@@ -66,8 +66,10 @@ const encodedBytes = (input: Exclude<ImageInput, RawImage>) => {
   throw new TypeError('Expected encoded bytes or a raw RGB/RGBA image.')
 }
 
-type ColorCount = {alphaSum: number
-  count: number}
+type ColorCount = {
+  alphaSum: number
+  count: number
+}
 
 const analyzeTile = (image: RawImage, options: ResolvedOptions, converter: ColorConverter, x0: number, y0: number, x1: number, y1: number): TileResult => {
   const lightness = new ProbeAccumulator(100, 100)

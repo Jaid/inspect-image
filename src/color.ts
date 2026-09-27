@@ -52,9 +52,11 @@ export const colorFromKey = (key: number): HslColor => ({
   lightness: key % 101,
 })
 
-type CachedColor = {color: HslColor
+type CachedColor = {
+  color: HslColor
   integer: HslColor
-  key: number}
+  key: number
+}
 
 export class ColorConverter {
   private readonly cache = new Map<number, CachedColor>

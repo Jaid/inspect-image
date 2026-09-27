@@ -17,5 +17,10 @@ export const decodeImage = (input: Uint8Array, maxPixels: number): DecodedImage 
   return decoder.decode(data, maxPixels)
 }
 
-export {BmpDecoder, GifDecoder, JpegDecoder, PngDecoder, TiffDecoder}
+export {BmpDecoder} from './BmpDecoder.ts'
+
 export {applyExifOrientation, readJpegOrientation} from './exif.ts'
+export {GifDecoder} from './GifDecoder.ts'
+export {JpegDecoder} from './JpegDecoder.ts'
+export {PngDecoder} from './PngDecoder.ts'
+export {TiffDecoder} from './TiffDecoder.ts'

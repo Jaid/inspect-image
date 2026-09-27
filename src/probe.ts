@@ -204,8 +204,10 @@ export class HueProbeAccumulator extends ProbeAccumulator {
   }
 }
 
-export const createProbe = (values: Array<{count: number
-  value: number}>, maximum: number): Probe => {
+export const createProbe = (values: Array<{
+  count: number
+  value: number
+}>, maximum: number): Probe => {
   const probe = new ProbeAccumulator(maximum, 100)
   for (const {value, count} of values) {
     for (let index = 0; index < count; index++) {

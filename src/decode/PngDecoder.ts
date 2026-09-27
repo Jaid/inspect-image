@@ -13,8 +13,10 @@ export class PngDecoder extends ImageDecoder {
       throw new TypeError('Truncated PNG.')
     }
     checkDimensions(data.readUInt32BE(16), data.readUInt32BE(20), maxPixels)
-    const decoded = PNG.sync.read(data) as ReturnType<typeof PNG.sync.read> & {depth: number
-      transColor?: Array<number>}
+    const decoded = PNG.sync.read(data) as ReturnType<typeof PNG.sync.read> & {
+      depth: number
+      transColor?: Array<number>
+    }
     if (decoded.transColor) {
       const source: Array<number> = decoded.transColor.length === 1 ? [decoded.transColor[0], decoded.transColor[0], decoded.transColor[0]] : decoded.transColor
       const rgb = source.map((value: number) => Math.round(value * 255 / (2 ** decoded.depth - 1)))

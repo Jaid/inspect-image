@@ -1,6 +1,8 @@
 declare module 'utif2' {
-  type Ifd = Record<string, unknown> & {height?: number
-    width?: number}
+  type Ifd = Record<string, unknown> & {
+    height?: number
+    width?: number
+  }
   const UTIF: {
     decode: (data: Uint8Array) => Array<Ifd>
     decodeImage: (data: Uint8Array, ifd: Ifd) => void
