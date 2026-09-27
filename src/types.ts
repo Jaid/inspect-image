@@ -93,6 +93,8 @@ export type Options = {
   dominantColorClusters?: number
   /** @default 10 */
   frequentColorsCount?: number
+  /** Pixels below this saturation are excluded from the hue probe. @default 1 */
+  hueSaturationThreshold?: number
   /** Reject larger decoded images before pixel analysis. @default 40000000 */
   maxPixels?: number
   /** @default 1 */

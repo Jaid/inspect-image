@@ -11,6 +11,11 @@ const validateInteger = (value: number, name: string, minimum = 1, maximum = Num
     throw new RangeError(`${name} must be a safe integer from ${minimum} to ${maximum}.`)
   }
 }
+const validateNumber = (value: number, name: string, minimum: number, maximum: number) => {
+  if (!Number.isFinite(value) || value < minimum || value > maximum) {
+    throw new RangeError(`${name} must be a finite number from ${minimum} to ${maximum}.`)
+  }
+}
 const resolveOptions = (options: Options = {}): ResolvedOptions => {
   const rawColorSpace: unknown = options.colorSpace ?? 'okhsl'
   const rawDominantColorAlgorithm: unknown = options.dominantColorAlgorithm ?? 'k_means'
@@ -22,6 +27,7 @@ const resolveOptions = (options: Options = {}): ResolvedOptions => {
   }
   const resolved: ResolvedOptions = {
     frequentColorsCount: options.frequentColorsCount ?? 10,
+    hueSaturationThreshold: options.hueSaturationThreshold ?? 1,
     colorSpace: rawColorSpace,
     rows: options.rows ?? 1,
     columns: options.columns ?? 1,
@@ -30,6 +36,7 @@ const resolveOptions = (options: Options = {}): ResolvedOptions => {
     maxPixels: options.maxPixels ?? 40_000_000,
   }
   validateInteger(resolved.frequentColorsCount, 'frequentColorsCount', 0, 100_000)
+  validateNumber(resolved.hueSaturationThreshold, 'hueSaturationThreshold', 0, 100)
   validateInteger(resolved.rows, 'rows')
   validateInteger(resolved.columns, 'columns')
   validateInteger(resolved.dominantColorClusters, 'dominantColorClusters', 1, 16)
@@ -83,7 +90,9 @@ const analyzeTile = (image: RawImage, options: ResolvedOptions, converter: Color
       red.add(r)
       green.add(g)
       blue.add(b)
-      hue.add(converted.color.hue)
+      if (converted.color.saturation >= options.hueSaturationThreshold) {
+        hue.add(converted.color.hue)
+      }
       saturation.add(converted.color.saturation)
       lightness.add(converted.color.lightness)
       if (opacity) {

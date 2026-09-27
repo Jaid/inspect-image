@@ -62,6 +62,25 @@ describe('public API and statistics', () => {
     })
     expect(result.probes.lightness.average).toBe(50)
   })
+  test('skips low-saturation pixels in the hue probe', () => {
+    const result = inspectImage(raw(3, 1, [white, red, [128, 127, 127]]), {colorSpace: 'hsl'})
+    expect(result.probes.hue.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(1)
+    expect(result.probes.hue.average).toBe(0)
+    expect(result.probes.saturation.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(3)
+  })
+  test('allows configuring the hue saturation threshold', () => {
+    const image = raw(2, 1, [white, [128, 127, 127]])
+    const unfiltered = inspectImage(image, {
+      colorSpace: 'hsl',
+      hueSaturationThreshold: 0,
+    })
+    const filtered = inspectImage(image, {
+      colorSpace: 'hsl',
+      hueSaturationThreshold: 100,
+    })
+    expect(unfiltered.probes.hue.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(2)
+    expect(filtered.probes.hue.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(0)
+  })
   test('alpha is probed but does not split color groups', () => {
     const result = inspectImage(raw(2, 1, [[255, 0, 0, 0], [255, 0, 0, 255]], 4), {colorSpace: 'hsl'})
     expect(result.probes.opacity).toMatchObject({
@@ -197,7 +216,7 @@ describe('crop semantics', () => {
 describe('validation', () => {
   test('rejects malformed inputs and invalid options before work', () => {
     const image = solid()
-    for (const options of [{rows: 0}, {columns: 3}, {rows: 1.5}, {frequentColorsCount: -1}, {maxPixels: Number.NaN}, {dominantColorClusters: 17}, {colorSpace: 'lab'}, {dominantColorAlgorithm: true}]) {
+    for (const options of [{rows: 0}, {columns: 3}, {rows: 1.5}, {frequentColorsCount: -1}, {hueSaturationThreshold: -1}, {hueSaturationThreshold: 101}, {hueSaturationThreshold: Number.NaN}, {maxPixels: Number.NaN}, {dominantColorClusters: 17}, {colorSpace: 'lab'}, {dominantColorAlgorithm: true}]) {
       expect(() => inspectImage(image, options as never)).toThrow()
     }
     expect(() => inspectImage(Buffer.from('not an image'))).toThrow()

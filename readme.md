@@ -55,6 +55,7 @@ OkHSL conversion is provided by the dependency-free `okhsl` package. Its RGB inv
 ```ts
 type Options = {
   frequentColorsCount?: number
+  hueSaturationThreshold?: number
   colorSpace?: 'okhsl' | 'hsl'
   rows?: number
   columns?: number
@@ -67,6 +68,7 @@ type Options = {
 Defaults:
 
 - `frequentColorsCount: 10` (`0` disables frequency collection)
+- `hueSaturationThreshold: 1` (pixels with lower saturation are excluded from the hue probe)
 - `colorSpace: 'okhsl'`
 - `rows: 1`, `columns: 1`
 - `dominantColorAlgorithm: 'k_means'`
