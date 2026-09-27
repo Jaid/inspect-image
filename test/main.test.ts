@@ -214,6 +214,51 @@ describe('public API and statistics', () => {
     expect(unfiltered.probes.hue.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(2)
     expect(filtered.probes.hue.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(0)
   })
+  test('spatial probes are bounded and use neighborhoods across tile boundaries', () => {
+    const checkerboard = inspectImage(raw(3, 3, Array.from({length: 9}, (_, index) => {
+      const x = index % 3
+      const y = Math.floor(index / 3)
+      return (x + y) % 2 ? white : black
+    })))
+    expect(checkerboard.probes.activity).toMatchObject({
+      minimum: 100,
+      maximum: 100,
+      average: 100,
+      median: 100,
+    })
+    expect(checkerboard.probes.acutance).toMatchObject({
+      minimum: 100,
+      maximum: 100,
+      average: 100,
+      median: 100,
+    })
+    const ramp = inspectImage(raw(5, 1, [[0, 0, 0], [64, 64, 64], [128, 128, 128], [192, 192, 192], [255, 255, 255]]), {
+      rows: 1,
+      columns: 5,
+    })
+    if (!('tiles' in ramp)) {
+      throw new Error('Expected split result.')
+    }
+    expect(ramp.tiles[2].probes.activity.average).toBeCloseTo(64 * 100 / 255)
+    expect(ramp.tiles[2].probes.acutance.average).toBeCloseTo(128 * 100 / 255)
+  })
+  test('omits acutance samples from locally uniform neighborhoods', () => {
+    const result = inspectImage(solid())
+    expect(result.probes.activity).toMatchObject({
+      minimum: 0,
+      maximum: 0,
+      average: 0,
+      median: 0,
+    })
+    expect(result.probes.acutance).toMatchObject({
+      minimum: 0,
+      maximum: 0,
+      average: 0,
+      median: 0,
+    })
+    expect(result.probes.activity.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(4)
+    expect(result.probes.acutance.brackets.reduce((sum, bracket) => sum + bracket.count, 0)).toBe(0)
+  })
   test('alpha is probed but does not split color groups', () => {
     const result = inspectImage(raw(2, 1, [[255, 0, 0, 0], [255, 0, 0, 255]], 4), {colorSpace: 'hsl'})
     expect(result.probes.opacity).toMatchObject({

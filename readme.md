@@ -2,7 +2,7 @@
 
 Synchronous, deterministic image color analysis for Bun and Node-compatible runtimes.
 
-`inspect-image` reports dimensions, encoded/decoded byte sizes, RGB + HSL/OkHSL distributions, frequent integer colors, dominant color, alpha statistics, tiled analyses, and conservative crop suggestions.
+`inspect-image` reports dimensions, encoded/decoded byte sizes, RGB + HSL/OkHSL distributions, spatial acutance/activity, frequent integer colors, dominant color, alpha statistics, tiled analyses, and conservative crop suggestions.
 
 ## Install
 
@@ -87,7 +87,9 @@ Non-hue probes use 8 non-overlapping percentage brackets:
 
 Hue uses 12 circular 30° brackets centered on multiples of 30°: `[345°,15°)`, `[15°,45°)`, …, `[315°,345°)`. The first bracket wraps across 360° → 0°. Pixels below `hueSaturationThreshold` are omitted from the hue probe.
 
-RGB uses 255 as 100%; saturation/lightness/opacity use 100. RGB medians are exact. Continuous HSL/opacity medians use 0.01-unit histograms; default OkHSL inverse values are integers by definition of the `okhsl` dependency.
+RGB uses 255 as 100%; saturation/lightness/opacity/acutance/activity use 100. RGB medians are exact. Continuous HSL/opacity/spatial medians use 0.01-unit histograms; default OkHSL inverse values are integers by definition of the `okhsl` dependency.
+
+Spatial probes use encoded-sRGB luma `Y = 0.2126R + 0.7152G + 0.0722B` and ignore alpha. `activity` is each pixel's mean absolute luma difference from its existing orthogonal neighbors, normalized so a black/white difference is 100%. `acutance` is the ratio of the clipped 3×3 luma range to the clipped 5×5 luma range; pixels whose 5×5 neighborhood is uniform are omitted from that probe. Spatial neighborhoods are clipped only at image boundaries and always cross tile boundaries, so changing `rows`/`columns` does not change a pixel's spatial measurement.
 
 ## Frequent colors
 

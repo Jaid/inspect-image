@@ -34,6 +34,8 @@ export type TileResult = {
   dominantColor?: HslColor
   frequentColors: Array<FrequentColor>
   probes: {
+    activity: Probe
+    acutance: Probe
     blue: Probe
     green: Probe
     hue: Probe

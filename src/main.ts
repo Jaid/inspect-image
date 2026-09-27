@@ -5,6 +5,7 @@ import {findPossibleCrop} from './crop.ts'
 import {decodeImage} from './decode/index.ts'
 import {DominantAccumulator} from './dominant.ts'
 import {HueProbeAccumulator, ProbeAccumulator} from './probe.ts'
+import {analyzeSpatialTile} from './spatial.ts'
 
 const validateInteger = (value: number, name: string, minimum = 1, maximum = Number.MAX_SAFE_INTEGER) => {
   if (!Number.isSafeInteger(value) || value < minimum || value > maximum) {
@@ -125,8 +126,11 @@ const analyzeTile = (image: RawImage, options: ResolvedOptions, converter: Color
       },
       count: entry.count,
     })) : []
+  const spatial = analyzeSpatialTile(image, x0, y0, x1, y1)
   const result: TileResult = {
     probes: {
+      acutance: spatial.acutance,
+      activity: spatial.activity,
       lightness: lightness.finalize(),
       red: red.finalize(),
       green: green.finalize(),
